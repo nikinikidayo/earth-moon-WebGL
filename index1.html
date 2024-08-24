@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earth and Moon in Space</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        //レンダラーの作成
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        //シーンの作成
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000);  // 黒い背景
+        //カメラの作成
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 10;
+
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(5, 5, 5).normalize();
+        scene.add(light);
+
+        const ambientLight = new THREE.AmbientLight(0x202020);  // 暗めの環境光
+        scene.add(ambientLight);
+
+        // 地球の作成
+        const earthGeometry = new THREE.SphereGeometry(1, 32, 32);
+        const earthMaterial = new THREE.MeshPhongMaterial({
+            color: 0x2233FF,  // 青色
+            shininess: 25
+        });
+        const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+        scene.add(earth);
+
+        // 月の作成
+        const moonGeometry = new THREE.SphereGeometry(0.27, 32, 32);  // 地球の約1/4のサイズ
+        const moonMaterial = new THREE.MeshPhongMaterial({
+            color: 0xDDDDDD,  // 灰色
+            shininess: 5
+        });
+        const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+
+        // 月の軌道を作成
+        const moonOrbit = new THREE.Object3D();
+        moonOrbit.add(moon);
+        scene.add(moonOrbit);
+        moon.position.x = 3;
+
+        // 軌道の傾きを加える
+        moonOrbit.rotation.x = 0.4;
+
+        // 星屑の作成
+        const createStarField = () => {
+            const vertices = [];
+            for (let i = 0; i < 5000; i++) {
+                const x = 2000 * (Math.random() - 0.5);
+                const y = 2000 * (Math.random() - 0.5);
+                const z = 2000 * (Math.random() - 0.5);
+                vertices.push(x, y, z);
+            }
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            const material = new THREE.PointsMaterial({
+                size: 1,
+                color: 0xFFFFFF,
+            });
+            const stars = new THREE.Points(geometry, material);
+            scene.add(stars);
+        };
+
+        createStarField();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // 地球の自転
+            earth.rotation.y += 0.005;
+            
+            // 月の公転
+            moonOrbit.rotation.y += 0.01;
+            
+            // 月の自転
+            moon.rotation.y += 0.01;
+            
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', function () {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            renderer.setSize(width, height);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+        });
+    </script>
+</body>
+</html>
+
